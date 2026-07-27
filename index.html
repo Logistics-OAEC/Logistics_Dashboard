@@ -13,6 +13,7 @@
       --border: #e2e8f0;
       --success: #10b981;
       --warning: #f59e0b;
+      --danger: #ef4444;
     }
 
     * {
@@ -29,7 +30,7 @@
     }
 
     .container {
-      max-width: 1300px;
+      max-width: 1400px;
       margin: 0 auto;
     }
 
@@ -74,7 +75,7 @@
     /* Section Layout */
     .content-grid {
       display: grid;
-      grid-template-columns: 340px 1fr;
+      grid-template-columns: 320px 1fr;
       gap: 24px;
     }
 
@@ -106,7 +107,7 @@
 
     .btn {
       width: 100%;
-      padding: 12px;
+      padding: 10px 16px;
       background-color: var(--primary);
       color: white;
       border: none;
@@ -114,11 +115,46 @@
       font-weight: 600;
       cursor: pointer;
       transition: background 0.2s;
-      margin-top: 8px;
     }
 
     .btn:hover {
       background-color: #1d4ed8;
+    }
+
+    /* Action Buttons inside Table */
+    .btn-action-group {
+      display: flex;
+      gap: 6px;
+    }
+
+    .btn-edit {
+      background-color: #3b82f6;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-edit:hover {
+      background-color: #2563eb;
+    }
+
+    .btn-delete {
+      background-color: var(--danger);
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-delete:hover {
+      background-color: #dc2626;
     }
 
     /* Table Styles */
@@ -162,6 +198,61 @@
     .badge-served {
       background-color: #d1fae5;
       color: #065f46;
+    }
+
+    /* Edit Modal Overlay */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal {
+      background: var(--card-bg);
+      border-radius: 8px;
+      padding: 24px;
+      width: 100%;
+      max-width: 500px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .btn-secondary {
+      background-color: #94a3b8;
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-secondary:hover {
+      background-color: #64748b;
     }
   </style>
 </head>
@@ -249,20 +340,79 @@
               <th>Status</th>
               <th>Date Served</th>
               <th>Duration</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody id="table-body">
-            <!-- Table rows render here -->
+            <!-- Dynamic rows -->
           </tbody>
         </table>
       </div>
     </div>
   </div>
 
+  <!-- Edit Request Modal -->
+  <div class="modal-overlay" id="edit-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Edit Request Entry</h3>
+      </div>
+      <form id="edit-form">
+        <input type="hidden" id="edit-id">
+        <div class="form-group">
+          <label for="edit-typeOfRequest">Type of Request</label>
+          <select id="edit-typeOfRequest" required>
+            <option value="Equipment Hauling">Equipment Hauling</option>
+            <option value="Cement Hauling">Cement Hauling</option>
+            <option value="Construction Material Hauling">Construction Material Hauling</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="edit-dateRequested">Date Requested</label>
+          <input type="date" id="edit-dateRequested" required>
+        </div>
+        <div class="form-group">
+          <label for="edit-unitHaulers">Unit Haulers</label>
+          <input type="text" id="edit-unitHaulers" required>
+        </div>
+        <div class="form-group">
+          <label for="edit-source">Source Location</label>
+          <input type="text" id="edit-source" required>
+        </div>
+        <div class="form-group">
+          <label for="edit-areaDestination">Area Destination</label>
+          <input type="text" id="edit-areaDestination" required>
+        </div>
+        <div class="form-group">
+          <label for="edit-status">Status</label>
+          <select id="edit-status">
+            <option value="Pending">Pending</option>
+            <option value="Served">Served</option>
+          </select>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" onclick="closeEditModal()">Cancel</button>
+          <button type="submit" class="btn" style="width: auto;">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <script>
-    // Initial Data Sample
+    // Initial Dataset with unique IDs
     let requestsData = [
       {
+        id: 1,
+        typeOfRequest: "Equipment Hauling",
+        dateRequested: "2026-07-27",
+        unitHaulers: "PM-32",
+        source: "LOS AMIGOS",
+        areaDestination: "CARAGA",
+        status: "Pending",
+        dateServed: "N/A"
+      },
+      {
+        id: 2,
         typeOfRequest: "Equipment Hauling",
         dateRequested: "2026-07-20",
         unitHaulers: "HLR-101 (J. Perez)",
@@ -272,6 +422,7 @@
         dateServed: "2026-07-23"
       },
       {
+        id: 3,
         typeOfRequest: "Cement Hauling",
         dateRequested: "2026-07-25",
         unitHaulers: "HLR-204 (M. Gomez)",
@@ -282,22 +433,17 @@
       }
     ];
 
-    // Calculate duration in days between requested date and served date
     function calculateDuration(dateReq, dateSrv, status) {
       if (status === "Pending" || dateSrv === "N/A") {
         return "In Progress";
       }
-      
       const start = new Date(dateReq);
       const end = new Date(dateSrv);
       const diffTime = end - start;
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      
-      if (isNaN(diffDays)) return "N/A";
-      return diffDays === 1 ? "1 day" : `${diffDays} days`;
+      return isNaN(diffDays) ? "N/A" : (diffDays === 1 ? "1 day" : `${diffDays} days`);
     }
 
-    // Render Dashboard Table and Cards
     function renderDashboard() {
       const tbody = document.getElementById("table-body");
       tbody.innerHTML = "";
@@ -321,17 +467,22 @@
           <td><span class="badge ${badgeClass}">${item.status}</span></td>
           <td>${item.dateServed}</td>
           <td>${duration}</td>
+          <td>
+            <div class="btn-action-group">
+              <button class="btn-edit" onclick="openEditModal(${item.id})">Edit</button>
+              <button class="btn-delete" onclick="deleteRequest(${item.id})">Delete</button>
+            </div>
+          </td>
         `;
         tbody.appendChild(row);
       });
 
-      // Update KPI totals
       document.getElementById("kpi-total").textContent = requestsData.length;
       document.getElementById("kpi-pending").textContent = pending;
       document.getElementById("kpi-served").textContent = served;
     }
 
-    // Form Submission
+    // Add New Entry
     document.getElementById("haul-form").addEventListener("submit", function(e) {
       e.preventDefault();
 
@@ -339,6 +490,7 @@
       const today = new Date().toISOString().split("T")[0];
 
       const newEntry = {
+        id: Date.now(),
         typeOfRequest: document.getElementById("typeOfRequest").value,
         dateRequested: document.getElementById("dateRequested").value,
         unitHaulers: document.getElementById("unitHaulers").value,
@@ -350,12 +502,67 @@
 
       requestsData.unshift(newEntry);
       renderDashboard();
-
-      // Reset form
       this.reset();
     });
 
-    // Initial render
+    // Delete Request Function
+    function deleteRequest(id) {
+      if (confirm("Are you sure you want to delete this haul request?")) {
+        requestsData = requestsData.filter(item => item.id !== id);
+        renderDashboard();
+      }
+    }
+
+    // Modal Helpers
+    function openEditModal(id) {
+      const item = requestsData.find(req => req.id === id);
+      if (!item) return;
+
+      document.getElementById("edit-id").value = item.id;
+      document.getElementById("edit-typeOfRequest").value = item.typeOfRequest;
+      document.getElementById("edit-dateRequested").value = item.dateRequested;
+      document.getElementById("edit-unitHaulers").value = item.unitHaulers;
+      document.getElementById("edit-source").value = item.source;
+      document.getElementById("edit-areaDestination").value = item.areaDestination;
+      document.getElementById("edit-status").value = item.status;
+
+      document.getElementById("edit-modal").classList.add("active");
+    }
+
+    function closeEditModal() {
+      document.getElementById("edit-modal").classList.remove("active");
+    }
+
+    // Save Edit Form
+    document.getElementById("edit-form").addEventListener("submit", function(e) {
+      e.preventDefault();
+
+      const id = parseInt(document.getElementById("edit-id").value);
+      const item = requestsData.find(req => req.id === id);
+
+      if (item) {
+        const newStatus = document.getElementById("edit-status").value;
+        const today = new Date().toISOString().split("T")[0];
+
+        item.typeOfRequest = document.getElementById("edit-typeOfRequest").value;
+        item.dateRequested = document.getElementById("edit-dateRequested").value;
+        item.unitHaulers = document.getElementById("edit-unitHaulers").value;
+        item.source = document.getElementById("edit-source").value;
+        item.areaDestination = document.getElementById("edit-areaDestination").value;
+
+        // Automatically set or clear dateServed based on status change
+        if (newStatus === "Served" && item.status !== "Served") {
+          item.dateServed = today;
+        } else if (newStatus === "Pending") {
+          item.dateServed = "N/A";
+        }
+        item.status = newStatus;
+      }
+
+      closeEditModal();
+      renderDashboard();
+    });
+
     renderDashboard();
   </script>
 </body>
