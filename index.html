@@ -72,89 +72,107 @@
       font-weight: 700;
     }
 
-    /* Section Layout */
-    .content-grid {
+    /* Collapsible Form Bar */
+    .accordion-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 24px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .accordion-header {
+      width: 100%;
+      padding: 16px 20px;
+      background: var(--card-bg);
+      border: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-color);
+      cursor: pointer;
+      text-align: left;
+      transition: background 0.2s;
+    }
+
+    .accordion-header:hover {
+      background-color: #f8fafc;
+    }
+
+    .accordion-icon {
+      font-size: 1.2rem;
+      transition: transform 0.3s ease;
+    }
+
+    .accordion-card.active .accordion-icon {
+      transform: rotate(180deg);
+    }
+
+    .accordion-content {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease-out, padding 0.3s ease-out;
+      padding: 0 20px;
+    }
+
+    .accordion-card.active .accordion-content {
+      max-height: 800px;
+      padding: 0 20px 20px 20px;
+      border-top: 1px solid var(--border);
+    }
+
+    /* Compact Form Grid */
+    .form-grid {
       display: grid;
-      grid-template-columns: 320px 1fr;
-      gap: 24px;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-top: 16px;
     }
 
-    @media (max-width: 992px) {
-      .content-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    /* Form Styles */
     .form-group {
-      margin-bottom: 14px;
+      margin-bottom: 8px;
     }
 
     .form-group label {
       display: block;
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       font-weight: 600;
-      margin-bottom: 6px;
+      margin-bottom: 4px;
+      color: #475569;
     }
 
     .form-group input, .form-group select {
       width: 100%;
-      padding: 10px;
+      padding: 8px 12px;
       border: 1px solid var(--border);
       border-radius: 6px;
-      font-size: 0.9rem;
+      font-size: 0.875rem;
+    }
+
+    .form-actions {
+      grid-column: 1 / -1;
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 8px;
     }
 
     .btn {
-      width: 100%;
-      padding: 10px 16px;
+      padding: 9px 20px;
       background-color: var(--primary);
       color: white;
       border: none;
       border-radius: 6px;
       font-weight: 600;
+      font-size: 0.875rem;
       cursor: pointer;
       transition: background 0.2s;
     }
 
     .btn:hover {
       background-color: #1d4ed8;
-    }
-
-    /* Action Buttons inside Table */
-    .btn-action-group {
-      display: flex;
-      gap: 6px;
-    }
-
-    .btn-edit {
-      background-color: #3b82f6;
-      color: white;
-      border: none;
-      padding: 6px 12px;
-      border-radius: 4px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      cursor: pointer;
-    }
-
-    .btn-edit:hover {
-      background-color: #2563eb;
-    }
-
-    .btn-delete {
-      background-color: var(--danger);
-      color: white;
-      border: none;
-      padding: 6px 12px;
-      border-radius: 4px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      cursor: pointer;
-    }
-
-    .btn-delete:hover {
-      background-color: #dc2626;
     }
 
     /* Table Styles */
@@ -170,7 +188,7 @@
     }
 
     th, td {
-      padding: 12px 14px;
+      padding: 10px 14px;
       border-bottom: 1px solid var(--border);
     }
 
@@ -181,26 +199,51 @@
       white-space: nowrap;
     }
 
+    /* Action Buttons in Table */
+    .btn-action-group {
+      display: flex;
+      gap: 4px;
+    }
+
+    .btn-edit {
+      background-color: #3b82f6;
+      color: white;
+      border: none;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-edit:hover { background-color: #2563eb; }
+
+    .btn-delete {
+      background-color: var(--danger);
+      color: white;
+      border: none;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-delete:hover { background-color: #dc2626; }
+
     /* Status Badges */
     .badge {
       display: inline-block;
-      padding: 4px 10px;
+      padding: 3px 8px;
       border-radius: 12px;
       font-size: 0.75rem;
       font-weight: 600;
     }
 
-    .badge-pending {
-      background-color: #fef3c7;
-      color: #b45309;
-    }
+    .badge-pending { background-color: #fef3c7; color: #b45309; }
+    .badge-served { background-color: #d1fae5; color: #065f46; }
 
-    .badge-served {
-      background-color: #d1fae5;
-      color: #065f46;
-    }
-
-    /* Edit Modal Overlay */
+    /* Compact Modal */
     .modal-overlay {
       position: fixed;
       top: 0;
@@ -214,30 +257,31 @@
       z-index: 1000;
     }
 
-    .modal-overlay.active {
-      display: flex;
-    }
+    .modal-overlay.active { display: flex; }
 
     .modal {
       background: var(--card-bg);
       border-radius: 8px;
-      padding: 24px;
-      width: 100%;
-      max-width: 500px;
+      padding: 20px;
+      width: 90%;
+      max-width: 580px;
       box-shadow: 0 10px 25px rgba(0,0,0,0.15);
     }
 
     .modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px;
+      margin-bottom: 12px;
+    }
+
+    .modal-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
     }
 
     .modal-footer {
       display: flex;
       justify-content: flex-end;
-      gap: 10px;
+      gap: 8px;
       margin-top: 16px;
     }
 
@@ -245,15 +289,14 @@
       background-color: #94a3b8;
       color: white;
       border: none;
-      padding: 10px 16px;
+      padding: 8px 16px;
       border-radius: 6px;
       font-weight: 600;
+      font-size: 0.875rem;
       cursor: pointer;
     }
 
-    .btn-secondary:hover {
-      background-color: #64748b;
-    }
+    .btn-secondary:hover { background-color: #64748b; }
   </style>
 </head>
 <body>
@@ -279,164 +322,207 @@
       </div>
     </div>
 
-    <div class="content-grid">
-      <!-- Add Entry Form -->
-      <div class="card">
-        <h2 style="font-size: 1.1rem; margin-bottom: 16px;">New Request Entry</h2>
+    <!-- Collapsible Add Request Bar -->
+    <div class="accordion-card" id="accordion-container">
+      <button class="accordion-header" onclick="toggleAccordion()">
+        <span>➕ Add New Request Entry</span>
+        <span class="accordion-icon">▼</span>
+      </button>
+      <div class="accordion-content">
         <form id="haul-form">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="typeOfRequest">Type of Request</label>
+              <select id="typeOfRequest" required>
+                <option value="" disabled selected>Select type...</option>
+                <option value="Equipment Hauling">Equipment Hauling</option>
+                <option value="Cement Hauling">Cement Hauling</option>
+                <option value="Construction Material Hauling">Construction Material Hauling</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="mobilizationType">Mobilization Type</label>
+              <select id="mobilizationType" required>
+                <option value="" disabled selected>Select mob type...</option>
+                <option value="Transfer">Transfer</option>
+                <option value="Demob">Demob</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="cargo">Cargo / Description</label>
+              <input type="text" id="cargo" placeholder="e.g. RG-55 / Excavator" required>
+            </div>
+
+            <div class="form-group">
+              <label for="dateRequested">Date Requested</label>
+              <input type="date" id="dateRequested" required>
+            </div>
+
+            <div class="form-group">
+              <label for="unitHaulers">Unit Haulers</label>
+              <input type="text" id="unitHaulers" placeholder="e.g. PM-37" required>
+            </div>
+
+            <div class="form-group">
+              <label for="source">Source Location</label>
+              <input type="text" id="source" placeholder="e.g. SINUDA" required>
+            </div>
+
+            <div class="form-group">
+              <label for="areaDestination">Area Destination</label>
+              <input type="text" id="areaDestination" placeholder="e.g. LOS AMIGOS" required>
+            </div>
+
+            <div class="form-group">
+              <label for="status">Status</label>
+              <select id="status">
+                <option value="Pending">Pending</option>
+                <option value="Served">Served</option>
+              </select>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="btn">Submit Request Entry</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Data Table -->
+    <div class="card table-container">
+      <h2 style="font-size: 1.1rem; margin-bottom: 16px;">Hauling Requests Log</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Type of Request</th>
+            <th>Mobilization Type</th>
+            <th>Cargo</th>
+            <th>Date Requested</th>
+            <th>Unit Haulers</th>
+            <th>Source</th>
+            <th>Area Destination</th>
+            <th>Status</th>
+            <th>Date Served</th>
+            <th>Duration</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="table-body">
+          <!-- Dynamic rows -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Compact Edit Modal -->
+  <div class="modal-overlay" id="edit-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 style="font-size: 1.1rem;">Edit Request Entry</h3>
+      </div>
+      <form id="edit-form">
+        <input type="hidden" id="edit-id">
+        <div class="modal-grid">
           <div class="form-group">
-            <label for="typeOfRequest">Type of Request</label>
-            <select id="typeOfRequest" required>
-              <option value="" disabled selected>Select type...</option>
+            <label for="edit-typeOfRequest">Type of Request</label>
+            <select id="edit-typeOfRequest" required>
               <option value="Equipment Hauling">Equipment Hauling</option>
               <option value="Cement Hauling">Cement Hauling</option>
               <option value="Construction Material Hauling">Construction Material Hauling</option>
             </select>
           </div>
-
           <div class="form-group">
-            <label for="dateRequested">Date Requested</label>
-            <input type="date" id="dateRequested" required>
+            <label for="edit-mobilizationType">Mobilization Type</label>
+            <select id="edit-mobilizationType" required>
+              <option value="Transfer">Transfer</option>
+              <option value="Demob">Demob</option>
+            </select>
           </div>
-
           <div class="form-group">
-            <label for="unitHaulers">Unit Haulers</label>
-            <input type="text" id="unitHaulers" placeholder="e.g. HLR-408 (A. Santos)" required>
+            <label for="edit-cargo">Cargo / Description</label>
+            <input type="text" id="edit-cargo" required>
           </div>
-
           <div class="form-group">
-            <label for="source">Source Location</label>
-            <input type="text" id="source" placeholder="e.g. Main Depot / Warehouse A" required>
+            <label for="edit-dateRequested">Date Requested</label>
+            <input type="date" id="edit-dateRequested" required>
           </div>
-
           <div class="form-group">
-            <label for="areaDestination">Area Destination</label>
-            <input type="text" id="areaDestination" placeholder="e.g. Site B - North Yard" required>
+            <label for="edit-unitHaulers">Unit Haulers</label>
+            <input type="text" id="edit-unitHaulers" required>
           </div>
-
           <div class="form-group">
-            <label for="status">Status</label>
-            <select id="status">
+            <label for="edit-source">Source Location</label>
+            <input type="text" id="edit-source" required>
+          </div>
+          <div class="form-group">
+            <label for="edit-areaDestination">Area Destination</label>
+            <input type="text" id="edit-areaDestination" required>
+          </div>
+          <div class="form-group">
+            <label for="edit-status">Status</label>
+            <select id="edit-status">
               <option value="Pending">Pending</option>
               <option value="Served">Served</option>
             </select>
           </div>
-
-          <button type="submit" class="btn">Add Request Entry</button>
-        </form>
-      </div>
-
-      <!-- Data Table -->
-      <div class="card table-container">
-        <h2 style="font-size: 1.1rem; margin-bottom: 16px;">Hauling Requests Log</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>Type of Request</th>
-              <th>Date Requested</th>
-              <th>Unit Haulers</th>
-              <th>Source</th>
-              <th>Area Destination</th>
-              <th>Status</th>
-              <th>Date Served</th>
-              <th>Duration</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="table-body">
-            <!-- Dynamic rows -->
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-
-  <!-- Edit Request Modal -->
-  <div class="modal-overlay" id="edit-modal">
-    <div class="modal">
-      <div class="modal-header">
-        <h3>Edit Request Entry</h3>
-      </div>
-      <form id="edit-form">
-        <input type="hidden" id="edit-id">
-        <div class="form-group">
-          <label for="edit-typeOfRequest">Type of Request</label>
-          <select id="edit-typeOfRequest" required>
-            <option value="Equipment Hauling">Equipment Hauling</option>
-            <option value="Cement Hauling">Cement Hauling</option>
-            <option value="Construction Material Hauling">Construction Material Hauling</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="edit-dateRequested">Date Requested</label>
-          <input type="date" id="edit-dateRequested" required>
-        </div>
-        <div class="form-group">
-          <label for="edit-unitHaulers">Unit Haulers</label>
-          <input type="text" id="edit-unitHaulers" required>
-        </div>
-        <div class="form-group">
-          <label for="edit-source">Source Location</label>
-          <input type="text" id="edit-source" required>
-        </div>
-        <div class="form-group">
-          <label for="edit-areaDestination">Area Destination</label>
-          <input type="text" id="edit-areaDestination" required>
-        </div>
-        <div class="form-group">
-          <label for="edit-status">Status</label>
-          <select id="edit-status">
-            <option value="Pending">Pending</option>
-            <option value="Served">Served</option>
-          </select>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn-secondary" onclick="closeEditModal()">Cancel</button>
-          <button type="submit" class="btn" style="width: auto;">Save Changes</button>
+          <button type="submit" class="btn">Save Changes</button>
         </div>
       </form>
     </div>
   </div>
 
   <script>
-    // Initial Dataset with unique IDs
     let requestsData = [
       {
         id: 1,
         typeOfRequest: "Equipment Hauling",
+        mobilizationType: "Transfer",
+        cargo: "ML-01",
+        dateRequested: "2026-07-27",
+        unitHaulers: "CT-12",
+        source: "COMMUNAL ELEM.",
+        areaDestination: "STA. ANA",
+        status: "Served",
+        dateServed: "2026-07-27"
+      },
+      {
+        id: 2,
+        typeOfRequest: "Equipment Hauling",
+        mobilizationType: "Transfer",
+        cargo: "RG-55",
+        dateRequested: "2026-07-27",
+        unitHaulers: "PM-37",
+        source: "SINUDA",
+        areaDestination: "LOS AMIGOS",
+        status: "Pending",
+        dateServed: "N/A"
+      },
+      {
+        id: 3,
+        typeOfRequest: "Equipment Hauling",
+        mobilizationType: "Demob",
+        cargo: "PL-29",
         dateRequested: "2026-07-27",
         unitHaulers: "PM-32",
         source: "LOS AMIGOS",
         areaDestination: "CARAGA",
         status: "Pending",
         dateServed: "N/A"
-      },
-      {
-        id: 2,
-        typeOfRequest: "Equipment Hauling",
-        dateRequested: "2026-07-20",
-        unitHaulers: "HLR-101 (J. Perez)",
-        source: "Central Depot",
-        areaDestination: "Project Site A",
-        status: "Served",
-        dateServed: "2026-07-23"
-      },
-      {
-        id: 3,
-        typeOfRequest: "Cement Hauling",
-        dateRequested: "2026-07-25",
-        unitHaulers: "HLR-204 (M. Gomez)",
-        source: "Plant 2",
-        areaDestination: "Bridge Construction",
-        status: "Pending",
-        dateServed: "N/A"
       }
     ];
 
+    function toggleAccordion() {
+      document.getElementById("accordion-container").classList.toggle("active");
+    }
+
     function calculateDuration(dateReq, dateSrv, status) {
-      if (status === "Pending" || dateSrv === "N/A") {
-        return "In Progress";
-      }
+      if (status === "Pending" || dateSrv === "N/A") return "In Progress";
       const start = new Date(dateReq);
       const end = new Date(dateSrv);
       const diffTime = end - start;
@@ -460,6 +546,8 @@
         const row = document.createElement("tr");
         row.innerHTML = `
           <td><strong>${item.typeOfRequest}</strong></td>
+          <td>${item.mobilizationType}</td>
+          <td>${item.cargo}</td>
           <td>${item.dateRequested}</td>
           <td>${item.unitHaulers}</td>
           <td>${item.source}</td>
@@ -492,6 +580,8 @@
       const newEntry = {
         id: Date.now(),
         typeOfRequest: document.getElementById("typeOfRequest").value,
+        mobilizationType: document.getElementById("mobilizationType").value,
+        cargo: document.getElementById("cargo").value,
         dateRequested: document.getElementById("dateRequested").value,
         unitHaulers: document.getElementById("unitHaulers").value,
         source: document.getElementById("source").value,
@@ -503,23 +593,26 @@
       requestsData.unshift(newEntry);
       renderDashboard();
       this.reset();
+      toggleAccordion(); // Close accordion after submitting
     });
 
-    // Delete Request Function
+    // Delete Request
     function deleteRequest(id) {
-      if (confirm("Are you sure you want to delete this haul request?")) {
+      if (confirm("Are you sure you want to delete this request?")) {
         requestsData = requestsData.filter(item => item.id !== id);
         renderDashboard();
       }
     }
 
-    // Modal Helpers
+    // Edit Modal Functions
     function openEditModal(id) {
       const item = requestsData.find(req => req.id === id);
       if (!item) return;
 
       document.getElementById("edit-id").value = item.id;
       document.getElementById("edit-typeOfRequest").value = item.typeOfRequest;
+      document.getElementById("edit-mobilizationType").value = item.mobilizationType;
+      document.getElementById("edit-cargo").value = item.cargo;
       document.getElementById("edit-dateRequested").value = item.dateRequested;
       document.getElementById("edit-unitHaulers").value = item.unitHaulers;
       document.getElementById("edit-source").value = item.source;
@@ -533,7 +626,6 @@
       document.getElementById("edit-modal").classList.remove("active");
     }
 
-    // Save Edit Form
     document.getElementById("edit-form").addEventListener("submit", function(e) {
       e.preventDefault();
 
@@ -545,12 +637,13 @@
         const today = new Date().toISOString().split("T")[0];
 
         item.typeOfRequest = document.getElementById("edit-typeOfRequest").value;
+        item.mobilizationType = document.getElementById("edit-mobilizationType").value;
+        item.cargo = document.getElementById("edit-cargo").value;
         item.dateRequested = document.getElementById("edit-dateRequested").value;
         item.unitHaulers = document.getElementById("edit-unitHaulers").value;
         item.source = document.getElementById("edit-source").value;
         item.areaDestination = document.getElementById("edit-areaDestination").value;
 
-        // Automatically set or clear dateServed based on status change
         if (newStatus === "Served" && item.status !== "Served") {
           item.dateServed = today;
         } else if (newStatus === "Pending") {
