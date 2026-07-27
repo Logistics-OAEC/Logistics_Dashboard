@@ -1,4 +1,98 @@
-<!DOCTYPE html>
+      { unitHauler: "HLR-305 (D. Garcia)", company: "Apex Construction Ltd.", requestType: "Cement Hauling", dateRequest: "2026-07-21", dateServed: "2026-07-22", status: "Served" },
+      { unitHauler: "HLR-112 (C. Aquino)", company: "Titan Heavy Industries", requestType: "Construction Material Hauling", dateRequest: "2026-07-26", dateServed: "N/A", status: "Pending" },
+      { unitHauler: "HLR-209 (E. Mendoza)", company: "Prime Build Corp.", requestType: "Equipment Hauling", dateRequest: "2026-07-18", dateServed: "2026-07-19", status: "Served" }
+    ];
+
+    function renderTable(data) {
+      const tbody = document.getElementById("tableBody");
+      tbody.innerHTML = "";
+
+      if (data.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-slate-400">No requests found matching your filters.</td></tr>`;
+        return;
+      }
+
+      data.forEach(row => {
+        const isServed = row.status === "Served";
+        const badgeStyle = isServed 
+          ? "bg-emerald-100 text-emerald-800 border-emerald-200" 
+          : "bg-amber-100 text-amber-800 border-amber-200";
+        const icon = isServed ? "fa-circle-check" : "fa-clock";
+
+        const tr = document.createElement("tr");
+        tr.className = "hover:bg-slate-50 transition";
+        tr.innerHTML = `
+          <td class="py-3 px-4 font-semibold text-slate-900">${row.unitHauler}</td>
+          <td class="py-3 px-4 text-slate-600">${row.company}</td>
+          <td class="py-3 px-4">
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md bg-slate-100 text-slate-700">
+              ${row.requestType}
+            </span>
+          </td>
+          <td class="py-3 px-4 text-slate-600">${row.dateRequest}</td>
+          <td class="py-3 px-4 text-slate-600">${row.dateServed}</td>
+          <td class="py-3 px-4">
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-full border ${badgeStyle}">
+              <i class="fa-solid ${icon}"></i>
+              ${row.status}
+            </span>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function updateKPIs(data) {
+      const total = data.length;
+      const served = data.filter(d => d.status === "Served").length;
+      const pending = data.filter(d => d.status === "Pending").length;
+      const rate = total > 0 ? Math.round((served / total) * 100) : 0;
+
+      document.getElementById("statTotal").innerText = total;
+      document.getElementById("statServed").innerText = served;
+      document.getElementById("statPending").innerText = pending;
+      document.getElementById("statRate").innerText = `${rate}%`;
+      document.getElementById("visibleCount").innerText = total;
+    }
+
+    function applyFilters() {
+      const search = document.getElementById("searchInput").value.toLowerCase();
+      const type = document.getElementById("typeFilter").value;
+      const status = document.getElementById("statusFilter").value;
+
+      const filtered = haulingData.filter(item => {
+        const matchesSearch = item.unitHauler.toLowerCase().includes(search) || item.company.toLowerCase().includes(search);
+        const matchesType = type === "ALL" || item.requestType === type;
+        const matchesStatus = status === "ALL" || item.status === status;
+
+        return matchesSearch && matchesType && matchesStatus;
+      });
+
+      renderTable(filtered);
+      updateKPIs(filtered);
+    }
+
+    // Export to CSV helper
+    function exportCSV() {
+      let csvContent = "data:text/csv;charset=utf-8,Unit Hauler,Company,Hauling Request Type,Date Request,Date Served,Status\n";
+      haulingData.forEach(r => {
+        csvContent += `"${r.unitHauler}","${r.company}","${r.requestType}","${r.dateRequest}","${r.dateServed}","${r.status}"\n`;
+      });
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", "hauling_requests_log.csv");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    // Initial load
+    applyFilters();
+  </script>
+</body>
+</html>
+ html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
