@@ -342,6 +342,15 @@
             </div>
 
             <div class="form-group">
+              <label for="mobilizationType">Mobilization Type</label>
+              <select id="mobilizationType" required>
+                <option value="" disabled selected>Select mob type...</option>
+                <option value="Transfer">Transfer</option>
+                <option value="Demob">Demob</option>
+              </select>
+            </div>
+
+            <div class="form-group">
               <label for="cargo">Cargo / Description</label>
               <input type="text" id="cargo" placeholder="e.g. RG-55 / Excavator" required>
             </div>
@@ -389,6 +398,7 @@
         <thead>
           <tr>
             <th>Type of Request</th>
+            <th>Mobilization Type</th>
             <th>Cargo</th>
             <th>Date Requested</th>
             <th>Unit Haulers</th>
@@ -416,12 +426,19 @@
       <form id="edit-form">
         <input type="hidden" id="edit-id">
         <div class="modal-grid">
-          <div class="form-group" style="grid-column: span 2;">
+          <div class="form-group">
             <label for="edit-typeOfRequest">Type of Request</label>
             <select id="edit-typeOfRequest" required>
               <option value="Equipment Hauling">Equipment Hauling</option>
               <option value="Cement Hauling">Cement Hauling</option>
               <option value="Construction Material Hauling">Construction Material Hauling</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="edit-mobilizationType">Mobilization Type</label>
+            <select id="edit-mobilizationType" required>
+              <option value="Transfer">Transfer</option>
+              <option value="Demob">Demob</option>
             </select>
           </div>
           <div class="form-group">
@@ -465,6 +482,19 @@
       {
         id: 1,
         typeOfRequest: "Equipment Hauling",
+        mobilizationType: "Transfer",
+        cargo: "ML-01",
+        dateRequested: "2026-07-27",
+        unitHaulers: "CT-12",
+        source: "COMMUNAL ELEM.",
+        areaDestination: "STA. ANA",
+        status: "Served",
+        dateServed: "2026-07-27"
+      },
+      {
+        id: 2,
+        typeOfRequest: "Equipment Hauling",
+        mobilizationType: "Transfer",
         cargo: "RG-55",
         dateRequested: "2026-07-27",
         unitHaulers: "PM-37",
@@ -474,8 +504,9 @@
         dateServed: "N/A"
       },
       {
-        id: 2,
+        id: 3,
         typeOfRequest: "Equipment Hauling",
+        mobilizationType: "Demob",
         cargo: "PL-29",
         dateRequested: "2026-07-27",
         unitHaulers: "PM-32",
@@ -515,6 +546,7 @@
         const row = document.createElement("tr");
         row.innerHTML = `
           <td><strong>${item.typeOfRequest}</strong></td>
+          <td>${item.mobilizationType}</td>
           <td>${item.cargo}</td>
           <td>${item.dateRequested}</td>
           <td>${item.unitHaulers}</td>
@@ -548,6 +580,7 @@
       const newEntry = {
         id: Date.now(),
         typeOfRequest: document.getElementById("typeOfRequest").value,
+        mobilizationType: document.getElementById("mobilizationType").value,
         cargo: document.getElementById("cargo").value,
         dateRequested: document.getElementById("dateRequested").value,
         unitHaulers: document.getElementById("unitHaulers").value,
@@ -560,7 +593,7 @@
       requestsData.unshift(newEntry);
       renderDashboard();
       this.reset();
-      toggleAccordion(); // Automatically collapse form after adding
+      toggleAccordion(); // Close accordion after submitting
     });
 
     // Delete Request
@@ -578,6 +611,7 @@
 
       document.getElementById("edit-id").value = item.id;
       document.getElementById("edit-typeOfRequest").value = item.typeOfRequest;
+      document.getElementById("edit-mobilizationType").value = item.mobilizationType;
       document.getElementById("edit-cargo").value = item.cargo;
       document.getElementById("edit-dateRequested").value = item.dateRequested;
       document.getElementById("edit-unitHaulers").value = item.unitHaulers;
@@ -603,6 +637,7 @@
         const today = new Date().toISOString().split("T")[0];
 
         item.typeOfRequest = document.getElementById("edit-typeOfRequest").value;
+        item.mobilizationType = document.getElementById("edit-mobilizationType").value;
         item.cargo = document.getElementById("edit-cargo").value;
         item.dateRequested = document.getElementById("edit-dateRequested").value;
         item.unitHaulers = document.getElementById("edit-unitHaulers").value;
