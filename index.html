@@ -1,340 +1,362 @@
-    {
-  unitHauler: "HLR-408 (A. Santos)",
-  company: "Apex Construction Ltd.",
-  requestType: "Aggregates Hauling",
-  dateRequest: "2026-07-27",
-  dateServed: "N/A",
-  status: "Pending"
-}  { unitHauler: "HLR-305 (D. Garcia)", company: "Apex Construction Ltd.", requestType: "Cement Hauling", dateRequest: "2026-07-21", dateServed: "2026-07-22", status: "Served" },
-      { unitHauler: "HLR-112 (C. Aquino)", company: "Titan Heavy Industries", requestType: "Construction Material Hauling", dateRequest: "2026-07-26", dateServed: "N/A", status: "Pending" },
-      { unitHauler: "HLR-209 (E. Mendoza)", company: "Prime Build Corp.", requestType: "Equipment Hauling", dateRequest: "2026-07-18", dateServed: "2026-07-19", status: "Served" }
-    ];
-
-    function renderTable(data) {
-      const tbody = document.getElementById("tableBody");
-      tbody.innerHTML = "";
-
-      if (data.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-slate-400">No requests found matching your filters.</td></tr>`;
-        return;
-      }
-
-      data.forEach(row => {
-        const isServed = row.status === "Served";
-        const badgeStyle = isServed 
-          ? "bg-emerald-100 text-emerald-800 border-emerald-200" 
-          : "bg-amber-100 text-amber-800 border-amber-200";
-        const icon = isServed ? "fa-circle-check" : "fa-clock";
-
-        const tr = document.createElement("tr");
-        tr.className = "hover:bg-slate-50 transition";
-        tr.innerHTML = `
-          <td class="py-3 px-4 font-semibold text-slate-900">${row.unitHauler}</td>
-          <td class="py-3 px-4 text-slate-600">${row.company}</td>
-          <td class="py-3 px-4">
-            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md bg-slate-100 text-slate-700">
-              ${row.requestType}
-            </span>
-          </td>
-          <td class="py-3 px-4 text-slate-600">${row.dateRequest}</td>
-          <td class="py-3 px-4 text-slate-600">${row.dateServed}</td>
-          <td class="py-3 px-4">
-            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-full border ${badgeStyle}">
-              <i class="fa-solid ${icon}"></i>
-              ${row.status}
-            </span>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
-
-    function updateKPIs(data) {
-      const total = data.length;
-      const served = data.filter(d => d.status === "Served").length;
-      const pending = data.filter(d => d.status === "Pending").length;
-      const rate = total > 0 ? Math.round((served / total) * 100) : 0;
-
-      document.getElementById("statTotal").innerText = total;
-      document.getElementById("statServed").innerText = served;
-      document.getElementById("statPending").innerText = pending;
-      document.getElementById("statRate").innerText = `${rate}%`;
-      document.getElementById("visibleCount").innerText = total;
-    }
-
-    function applyFilters() {
-      const search = document.getElementById("searchInput").value.toLowerCase();
-      const type = document.getElementById("typeFilter").value;
-      const status = document.getElementById("statusFilter").value;
-
-      const filtered = haulingData.filter(item => {
-        const matchesSearch = item.unitHauler.toLowerCase().includes(search) || item.company.toLowerCase().includes(search);
-        const matchesType = type === "ALL" || item.requestType === type;
-        const matchesStatus = status === "ALL" || item.status === status;
-
-        return matchesSearch && matchesType && matchesStatus;
-      });
-
-      renderTable(filtered);
-      updateKPIs(filtered);
-    }
-
-    // Export to CSV helper
-    function exportCSV() {
-      let csvContent = "data:text/csv;charset=utf-8,Unit Hauler,Company,Hauling Request Type,Date Request,Date Served,Status\n";
-      haulingData.forEach(r => {
-        csvContent += `"${r.unitHauler}","${r.company}","${r.requestType}","${r.dateRequest}","${r.dateServed}","${r.status}"\n`;
-      });
-      const encodedUri = encodeURI(csvContent);
-      const link = document.createElement("a");
-      link.setAttribute("href", encodedUri);
-      link.setAttribute("download", "hauling_requests_log.csv");
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
-
-    // Initial load
-    applyFilters();
-  </script>
-</body>
-</html>
- html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Logistics Monitoring Dashboard</title>
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- FontAwesome Icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-</head>
-<body class="bg-slate-100 font-sans text-slate-800 antialiased p-6">
+  <title>Logistics Dashboard</title>
+  <style>
+    :root {
+      --bg-color: #f4f6f9;
+      --card-bg: #ffffff;
+      --text-color: #1e293b;
+      --primary: #2563eb;
+      --border: #e2e8f0;
+      --success: #10b981;
+      --warning: #f59e0b;
+    }
 
-  <div class="max-w-7xl mx-auto space-y-6">
-    
-    <!-- HEADER -->
-    <header class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-      <div>
-        <h1 class="text-2xl font-bold text-slate-900 flex items-center gap-3">
-          <i class="fa-solid font-black fa-truck-ramp-box text-blue-600"></i>
-          Logistics Monitoring Dashboard
-        </h1>
-        <p class="text-sm text-slate-500 mt-1">Track unit haulers, request statuses, and fulfillment lead times in real-time.</p>
-      </div>
-      <div class="flex items-center gap-3">
-        <button id="exportBtn" onclick="exportCSV()" class="px-4 py-2 bg-slate-900 text-white text-sm font-medium rounded-lg hover:bg-slate-800 transition flex items-center gap-2">
-          <i class="fa-solid fa-file-csv"></i> Export Data
-        </button>
-      </div>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      padding: 24px;
+    }
+
+    .container {
+      max-width: 1300px;
+      margin: 0 auto;
+    }
+
+    header {
+      margin-bottom: 24px;
+    }
+
+    header h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+    }
+
+    /* KPI Cards */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .card h3 {
+      font-size: 0.8rem;
+      color: #64748b;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .card .value {
+      font-size: 1.75rem;
+      font-weight: 700;
+    }
+
+    /* Section Layout */
+    .content-grid {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 24px;
+    }
+
+    @media (max-width: 992px) {
+      .content-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Form Styles */
+    .form-group {
+      margin-bottom: 14px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .form-group input, .form-group select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 0.9rem;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 12px;
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+      margin-top: 8px;
+    }
+
+    .btn:hover {
+      background-color: #1d4ed8;
+    }
+
+    /* Table Styles */
+    .table-container {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.875rem;
+    }
+
+    th, td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      background-color: #f8fafc;
+      color: #475569;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    /* Status Badges */
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .badge-pending {
+      background-color: #fef3c7;
+      color: #b45309;
+    }
+
+    .badge-served {
+      background-color: #d1fae5;
+      color: #065f46;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <h1>Logistics Management Dashboard</h1>
     </header>
 
-    <!-- KPI CARDS -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      <!-- Total Requests -->
-      <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
-        <div>
-          <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Requests</p>
-          <h3 id="statTotal" class="text-2xl font-bold text-slate-900 mt-1">0</h3>
-        </div>
-        <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center text-xl">
-          <i class="fa-solid fa-clipboard-list"></i>
-        </div>
+    <!-- Key Metrics -->
+    <div class="kpi-grid">
+      <div class="card">
+        <h3>Total Requests</h3>
+        <div class="value" id="kpi-total">0</div>
       </div>
-
-      <!-- Served Requests -->
-      <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
-        <div>
-          <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Served</p>
-          <h3 id="statServed" class="text-2xl font-bold text-emerald-600 mt-1">0</h3>
-        </div>
-        <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center text-xl">
-          <i class="fa-solid fa-circle-check"></i>
-        </div>
+      <div class="card">
+        <h3>Pending</h3>
+        <div class="value" id="kpi-pending" style="color: var(--warning);">0</div>
       </div>
-
-      <!-- Pending Requests -->
-      <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
-        <div>
-          <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Pending</p>
-          <h3 id="statPending" class="text-2xl font-bold text-amber-600 mt-1">0</h3>
-        </div>
-        <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-lg flex items-center justify-center text-xl">
-          <i class="fa-solid fa-hourglass-half"></i>
-        </div>
-      </div>
-
-      <!-- Fulfillment Rate -->
-      <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
-        <div>
-          <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Fulfillment Rate</p>
-          <h3 id="statRate" class="text-2xl font-bold text-indigo-600 mt-1">0%</h3>
-        </div>
-        <div class="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center text-xl">
-          <i class="fa-solid fa-chart-line"></i>
-        </div>
+      <div class="card">
+        <h3>Served</h3>
+        <div class="value" id="kpi-served" style="color: var(--success);">0</div>
       </div>
     </div>
 
-    <!-- FILTERS AND TABLE CONTAINER -->
-    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-      
-      <!-- CONTROLS / FILTER BAR -->
-      <div class="p-4 bg-slate-50 border-b border-slate-200 flex flex-col md:flex-row gap-3 justify-between">
-        
-        <!-- Search Input -->
-        <div class="relative flex-1">
-          <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-slate-400"></i>
-          <input type="text" id="searchInput" oninput="applyFilters()" placeholder="Search Unit Hauler or Company..." class="w-full pl-10 pr-4 py-2 text-sm bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
-        </div>
+    <div class="content-grid">
+      <!-- Add Entry Form -->
+      <div class="card">
+        <h2 style="font-size: 1.1rem; margin-bottom: 16px;">New Request Entry</h2>
+        <form id="haul-form">
+          <div class="form-group">
+            <label for="typeOfRequest">Type of Request</label>
+            <select id="typeOfRequest" required>
+              <option value="" disabled selected>Select type...</option>
+              <option value="Equipment Hauling">Equipment Hauling</option>
+              <option value="Cement Hauling">Cement Hauling</option>
+              <option value="Construction Material Hauling">Construction Material Hauling</option>
+            </select>
+          </div>
 
-        <!-- Filter Dropdowns -->
-        <div class="flex flex-wrap sm:flex-nowrap gap-3">
-          <!-- Request Type Filter -->
-          <select id="typeFilter" onchange="applyFilters()" class="text-sm bg-white border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
-            <option value="ALL">All Request Types</option>
-            <option value="Equipment Hauling">Equipment Hauling</option>
-            <option value="Cement Hauling">Cement Hauling</option>
-            <option value="Construction Material Hauling">Construction Material Hauling</option>
-          </select>
+          <div class="form-group">
+            <label for="dateRequested">Date Requested</label>
+            <input type="date" id="dateRequested" required>
+          </div>
 
-          <!-- Status Filter -->
-          <select id="statusFilter" onchange="applyFilters()" class="text-sm bg-white border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
-            <option value="ALL">All Statuses</option>
-            <option value="Served">Served</option>
-            <option value="Pending">Pending</option>
-          </select>
-        </div>
+          <div class="form-group">
+            <label for="unitHaulers">Unit Haulers</label>
+            <input type="text" id="unitHaulers" placeholder="e.g. HLR-408 (A. Santos)" required>
+          </div>
+
+          <div class="form-group">
+            <label for="source">Source Location</label>
+            <input type="text" id="source" placeholder="e.g. Main Depot / Warehouse A" required>
+          </div>
+
+          <div class="form-group">
+            <label for="areaDestination">Area Destination</label>
+            <input type="text" id="areaDestination" placeholder="e.g. Site B - North Yard" required>
+          </div>
+
+          <div class="form-group">
+            <label for="status">Status</label>
+            <select id="status">
+              <option value="Pending">Pending</option>
+              <option value="Served">Served</option>
+            </select>
+          </div>
+
+          <button type="submit" class="btn">Add Request Entry</button>
+        </form>
       </div>
 
-      <!-- TABLE -->
-      <div class="overflow-x-auto">
-        <table class="w-full text-left text-sm">
-          <thead class="bg-slate-100 text-slate-500 uppercase text-xs font-semibold tracking-wider border-b border-slate-200">
+      <!-- Data Table -->
+      <div class="card table-container">
+        <h2 style="font-size: 1.1rem; margin-bottom: 16px;">Hauling Requests Log</h2>
+        <table>
+          <thead>
             <tr>
-              <th class="py-3 px-4">Unit Hauler</th>
-              <th class="py-3 px-4">Company</th>
-              <th class="py-3 px-4">Hauling Request Type</th>
-              <th class="py-3 px-4">Date Request</th>
-              <th class="py-3 px-4">Date Served</th>
-              <th class="py-3 px-4">Status</th>
+              <th>Type of Request</th>
+              <th>Date Requested</th>
+              <th>Unit Haulers</th>
+              <th>Source</th>
+              <th>Area Destination</th>
+              <th>Status</th>
+              <th>Date Served</th>
+              <th>Duration</th>
             </tr>
           </thead>
-          <tbody id="tableBody" class="divide-y divide-slate-200">
-            <!-- Rows injected by JavaScript -->
+          <tbody id="table-body">
+            <!-- Table rows render here -->
           </tbody>
         </table>
       </div>
-
-      <!-- FOOTER COUNT -->
-      <div class="p-4 text-xs text-slate-500 bg-slate-50 border-t border-slate-200 flex justify-between items-center">
-        <span>Showing <strong id="visibleCount" class="text-slate-800">0</strong> entries</span>
-        <span class="italic">Updated in real-time</span>
-      </div>
-
     </div>
   </div>
 
-  <!-- JAVASCRIPT LOGIC -->
   <script>
-    // Sample Dataset
-    const haulingData = [
-      { unitHauler: "HLR-101 (J. Santos)", company: "Apex Construction Ltd.", requestType: "Equipment Hauling", dateRequest: "2026-07-20", dateServed: "2026-07-21", status: "Served" },
-      { unitHauler: "HLR-104 (M. Torres)", company: "Prime Build Corp.", requestType: "Cement Hauling", dateRequest: "2026-07-22", dateServed: "2026-07-23", status: "Served" },
-      { unitHauler: "HLR-202 (R. Reyes)", company: "Metro Infrastructures", requestType: "Construction Material Hauling", dateRequest: "2026-07-24", dateServed: "N/A", status: "Pending" },
-      { unitHauler: "HLR-108 (A. Cruz)", company: "SteelWorks Philippines", requestType: "Equipment Hauling", dateRequest: "2026-07-25", dateServed: "N/A", status: "Pending" },
-      { unitHauler: "HLR-305 (D. Garcia)", company: "Apex Construction Ltd.", requestType: "Cement Hauling", dateRequest: "2026-07-21", dateServed: "2026-07-22", status: "Served" },
-      { unitHauler: "HLR-112 (C. Aquino)", company: "Titan Heavy Industries", requestType: "Construction Material Hauling", dateRequest: "2026-07-26", dateServed: "N/A", status: "Pending" },
-      { unitHauler: "HLR-209 (E. Mendoza)", company: "Prime Build Corp.", requestType: "Equipment Hauling", dateRequest: "2026-07-18", dateServed: "2026-07-19", status: "Served" }
+    // Initial Data Sample
+    let requestsData = [
+      {
+        typeOfRequest: "Equipment Hauling",
+        dateRequested: "2026-07-20",
+        unitHaulers: "HLR-101 (J. Perez)",
+        source: "Central Depot",
+        areaDestination: "Project Site A",
+        status: "Served",
+        dateServed: "2026-07-23"
+      },
+      {
+        typeOfRequest: "Cement Hauling",
+        dateRequested: "2026-07-25",
+        unitHaulers: "HLR-204 (M. Gomez)",
+        source: "Plant 2",
+        areaDestination: "Bridge Construction",
+        status: "Pending",
+        dateServed: "N/A"
+      }
     ];
 
-    function renderTable(data) {
-      const tbody = document.getElementById("tableBody");
+    // Calculate duration in days between requested date and served date
+    function calculateDuration(dateReq, dateSrv, status) {
+      if (status === "Pending" || dateSrv === "N/A") {
+        return "In Progress";
+      }
+      
+      const start = new Date(dateReq);
+      const end = new Date(dateSrv);
+      const diffTime = end - start;
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      if (isNaN(diffDays)) return "N/A";
+      return diffDays === 1 ? "1 day" : `${diffDays} days`;
+    }
+
+    // Render Dashboard Table and Cards
+    function renderDashboard() {
+      const tbody = document.getElementById("table-body");
       tbody.innerHTML = "";
 
-      if (data.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-slate-400">No requests found matching your filters.</td></tr>`;
-        return;
-      }
+      let pending = 0, served = 0;
 
-      data.forEach(row => {
-        const isServed = row.status === "Served";
-        const badgeStyle = isServed 
-          ? "bg-emerald-100 text-emerald-800 border-emerald-200" 
-          : "bg-amber-100 text-amber-800 border-amber-200";
-        const icon = isServed ? "fa-circle-check" : "fa-clock";
+      requestsData.forEach(item => {
+        if (item.status === "Pending") pending++;
+        if (item.status === "Served") served++;
 
-        const tr = document.createElement("tr");
-        tr.className = "hover:bg-slate-50 transition";
-        tr.innerHTML = `
-          <td class="py-3 px-4 font-semibold text-slate-900">${row.unitHauler}</td>
-          <td class="py-3 px-4 text-slate-600">${row.company}</td>
-          <td class="py-3 px-4">
-            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md bg-slate-100 text-slate-700">
-              ${row.requestType}
-            </span>
-          </td>
-          <td class="py-3 px-4 text-slate-600">${row.dateRequest}</td>
-          <td class="py-3 px-4 text-slate-600">${row.dateServed}</td>
-          <td class="py-3 px-4">
-            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-full border ${badgeStyle}">
-              <i class="fa-solid ${icon}"></i>
-              ${row.status}
-            </span>
-          </td>
+        const duration = calculateDuration(item.dateRequested, item.dateServed, item.status);
+        const badgeClass = item.status === "Served" ? "badge-served" : "badge-pending";
+
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td><strong>${item.typeOfRequest}</strong></td>
+          <td>${item.dateRequested}</td>
+          <td>${item.unitHaulers}</td>
+          <td>${item.source}</td>
+          <td>${item.areaDestination}</td>
+          <td><span class="badge ${badgeClass}">${item.status}</span></td>
+          <td>${item.dateServed}</td>
+          <td>${duration}</td>
         `;
-        tbody.appendChild(tr);
-      });
-    }
-
-    function updateKPIs(data) {
-      const total = data.length;
-      const served = data.filter(d => d.status === "Served").length;
-      const pending = data.filter(d => d.status === "Pending").length;
-      const rate = total > 0 ? Math.round((served / total) * 100) : 0;
-
-      document.getElementById("statTotal").innerText = total;
-      document.getElementById("statServed").innerText = served;
-      document.getElementById("statPending").innerText = pending;
-      document.getElementById("statRate").innerText = `${rate}%`;
-      document.getElementById("visibleCount").innerText = total;
-    }
-
-    function applyFilters() {
-      const search = document.getElementById("searchInput").value.toLowerCase();
-      const type = document.getElementById("typeFilter").value;
-      const status = document.getElementById("statusFilter").value;
-
-      const filtered = haulingData.filter(item => {
-        const matchesSearch = item.unitHauler.toLowerCase().includes(search) || item.company.toLowerCase().includes(search);
-        const matchesType = type === "ALL" || item.requestType === type;
-        const matchesStatus = status === "ALL" || item.status === status;
-
-        return matchesSearch && matchesType && matchesStatus;
+        tbody.appendChild(row);
       });
 
-      renderTable(filtered);
-      updateKPIs(filtered);
+      // Update KPI totals
+      document.getElementById("kpi-total").textContent = requestsData.length;
+      document.getElementById("kpi-pending").textContent = pending;
+      document.getElementById("kpi-served").textContent = served;
     }
 
-    // Export to CSV helper
-    function exportCSV() {
-      let csvContent = "data:text/csv;charset=utf-8,Unit Hauler,Company,Hauling Request Type,Date Request,Date Served,Status\n";
-      haulingData.forEach(r => {
-        csvContent += `"${r.unitHauler}","${r.company}","${r.requestType}","${r.dateRequest}","${r.dateServed}","${r.status}"\n`;
-      });
-      const encodedUri = encodeURI(csvContent);
-      const link = document.createElement("a");
-      link.setAttribute("href", encodedUri);
-      link.setAttribute("download", "hauling_requests_log.csv");
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
+    // Form Submission
+    document.getElementById("haul-form").addEventListener("submit", function(e) {
+      e.preventDefault();
 
-    // Initial load
-    applyFilters();
+      const status = document.getElementById("status").value;
+      const today = new Date().toISOString().split("T")[0];
+
+      const newEntry = {
+        typeOfRequest: document.getElementById("typeOfRequest").value,
+        dateRequested: document.getElementById("dateRequested").value,
+        unitHaulers: document.getElementById("unitHaulers").value,
+        source: document.getElementById("source").value,
+        areaDestination: document.getElementById("areaDestination").value,
+        status: status,
+        dateServed: status === "Served" ? today : "N/A"
+      };
+
+      requestsData.unshift(newEntry);
+      renderDashboard();
+
+      // Reset form
+      this.reset();
+    });
+
+    // Initial render
+    renderDashboard();
   </script>
 </body>
 </html>
