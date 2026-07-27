@@ -200,7 +200,7 @@
       color: #065f46;
     }
 
-    /* Edit Modal Overlay */
+    /* Modal Overlay */
     .modal-overlay {
       position: fixed;
       top: 0;
@@ -295,23 +295,28 @@
           </div>
 
           <div class="form-group">
+            <label for="cargo">Cargo / Description</label>
+            <input type="text" id="cargo" placeholder="e.g. Excavator / Portland Cement 50 Bags" required>
+          </div>
+
+          <div class="form-group">
             <label for="dateRequested">Date Requested</label>
             <input type="date" id="dateRequested" required>
           </div>
 
           <div class="form-group">
             <label for="unitHaulers">Unit Haulers</label>
-            <input type="text" id="unitHaulers" placeholder="e.g. HLR-408 (A. Santos)" required>
+            <input type="text" id="unitHaulers" placeholder="e.g. PM-37 / HLR-408" required>
           </div>
 
           <div class="form-group">
             <label for="source">Source Location</label>
-            <input type="text" id="source" placeholder="e.g. Main Depot / Warehouse A" required>
+            <input type="text" id="source" placeholder="e.g. SINUDA / Main Depot" required>
           </div>
 
           <div class="form-group">
             <label for="areaDestination">Area Destination</label>
-            <input type="text" id="areaDestination" placeholder="e.g. Site B - North Yard" required>
+            <input type="text" id="areaDestination" placeholder="e.g. LOS AMIGOS / Site B" required>
           </div>
 
           <div class="form-group">
@@ -333,6 +338,7 @@
           <thead>
             <tr>
               <th>Type of Request</th>
+              <th>Cargo</th>
               <th>Date Requested</th>
               <th>Unit Haulers</th>
               <th>Source</th>
@@ -368,6 +374,10 @@
           </select>
         </div>
         <div class="form-group">
+          <label for="edit-cargo">Cargo / Description</label>
+          <input type="text" id="edit-cargo" required>
+        </div>
+        <div class="form-group">
           <label for="edit-dateRequested">Date Requested</label>
           <input type="date" id="edit-dateRequested" required>
         </div>
@@ -399,35 +409,27 @@
   </div>
 
   <script>
-    // Initial Dataset with unique IDs
+    // Initial Dataset with Cargo field added
     let requestsData = [
       {
         id: 1,
         typeOfRequest: "Equipment Hauling",
+        cargo: "Backhoe Loader",
         dateRequested: "2026-07-27",
-        unitHaulers: "PM-32",
-        source: "LOS AMIGOS",
-        areaDestination: "CARAGA",
+        unitHaulers: "PM-37",
+        source: "SINUDA",
+        areaDestination: "LOS AMIGOS",
         status: "Pending",
         dateServed: "N/A"
       },
       {
         id: 2,
         typeOfRequest: "Equipment Hauling",
-        dateRequested: "2026-07-20",
-        unitHaulers: "HLR-101 (J. Perez)",
-        source: "Central Depot",
-        areaDestination: "Project Site A",
-        status: "Served",
-        dateServed: "2026-07-23"
-      },
-      {
-        id: 3,
-        typeOfRequest: "Cement Hauling",
-        dateRequested: "2026-07-25",
-        unitHaulers: "HLR-204 (M. Gomez)",
-        source: "Plant 2",
-        areaDestination: "Bridge Construction",
+        cargo: "Bulldozer CAT D6",
+        dateRequested: "2026-07-27",
+        unitHaulers: "PM-32",
+        source: "LOS AMIGOS",
+        areaDestination: "CARAGA",
         status: "Pending",
         dateServed: "N/A"
       }
@@ -460,6 +462,7 @@
         const row = document.createElement("tr");
         row.innerHTML = `
           <td><strong>${item.typeOfRequest}</strong></td>
+          <td>${item.cargo}</td>
           <td>${item.dateRequested}</td>
           <td>${item.unitHaulers}</td>
           <td>${item.source}</td>
@@ -492,6 +495,7 @@
       const newEntry = {
         id: Date.now(),
         typeOfRequest: document.getElementById("typeOfRequest").value,
+        cargo: document.getElementById("cargo").value,
         dateRequested: document.getElementById("dateRequested").value,
         unitHaulers: document.getElementById("unitHaulers").value,
         source: document.getElementById("source").value,
@@ -505,7 +509,7 @@
       this.reset();
     });
 
-    // Delete Request Function
+    // Delete Request
     function deleteRequest(id) {
       if (confirm("Are you sure you want to delete this haul request?")) {
         requestsData = requestsData.filter(item => item.id !== id);
@@ -520,6 +524,7 @@
 
       document.getElementById("edit-id").value = item.id;
       document.getElementById("edit-typeOfRequest").value = item.typeOfRequest;
+      document.getElementById("edit-cargo").value = item.cargo;
       document.getElementById("edit-dateRequested").value = item.dateRequested;
       document.getElementById("edit-unitHaulers").value = item.unitHaulers;
       document.getElementById("edit-source").value = item.source;
@@ -533,7 +538,7 @@
       document.getElementById("edit-modal").classList.remove("active");
     }
 
-    // Save Edit Form
+    // Save Changes from Edit Modal
     document.getElementById("edit-form").addEventListener("submit", function(e) {
       e.preventDefault();
 
@@ -545,12 +550,12 @@
         const today = new Date().toISOString().split("T")[0];
 
         item.typeOfRequest = document.getElementById("edit-typeOfRequest").value;
+        item.cargo = document.getElementById("edit-cargo").value;
         item.dateRequested = document.getElementById("edit-dateRequested").value;
         item.unitHaulers = document.getElementById("edit-unitHaulers").value;
         item.source = document.getElementById("edit-source").value;
         item.areaDestination = document.getElementById("edit-areaDestination").value;
 
-        // Automatically set or clear dateServed based on status change
         if (newStatus === "Served" && item.status !== "Served") {
           item.dateServed = today;
         } else if (newStatus === "Pending") {
