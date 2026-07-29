@@ -655,6 +655,40 @@
       closeEditModal();
       renderDashboard();
     });
+    <!-- Optional Details Section Header -->
+<div class="col-12 mt-3">
+  <small class="text-muted font-weight-bold">OPTIONAL DETAILS</small>
+  <hr class="mt-1 mb-3">
+</div>
+
+<!-- Project ID / Cost Center -->
+<div class="form-group col-md-4">
+  <label for="projectId">Project ID / Cost Center <small class="text-muted">(Optional)</small></label>
+  <input type="text" class="form-control" id="projectId" name="projectId" placeholder="e.g. PRJ-2026-089">
+</div>
+
+<!-- Requested By / Contact -->
+<div class="form-group col-md-4">
+  <label for="requestedBy">Requested By <small class="text-muted">(Optional)</small></label>
+  <input type="text" class="form-control" id="requestedBy" name="requestedBy" placeholder="e.g. Engr. Santos / Contact #">
+</div>
+
+<!-- Priority Level -->
+<div class="form-group col-md-4">
+  <label for="priorityLevel">Priority Level <small class="text-muted">(Optional)</small></label>
+  <select class="form-control" id="priorityLevel" name="priorityLevel">
+    <option value="Normal" selected>Normal</option>
+    <option value="Low">Low</option>
+    <option value="High">High</option>
+    <option value="Urgent">Urgent</option>
+  </select>
+</div>
+
+<!-- Remarks / Special Instructions -->
+<div class="form-group col-12">
+  <label for="requestRemarks">Remarks / Special Instructions <small class="text-muted">(Optional)</small></label>
+  <textarea class="form-control" id="requestRemarks" name="requestRemarks" rows="2" placeholder="e.g. Call site supervisor 30 mins before arrival"></label></textarea>
+</div>
 
     renderDashboard();
   </script>
