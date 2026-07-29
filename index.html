@@ -328,6 +328,83 @@
       color: #64748b;
       align-self: center;
     }
+
+    /* Tab Navigation */
+    .tab-navigation {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .tab-btn {
+      padding: 10px 18px;
+      background: none;
+      border: none;
+      border-bottom: 3px solid transparent;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #64748b;
+      cursor: pointer;
+      transition: color 0.2s, border-color 0.2s;
+    }
+
+    .tab-btn:hover {
+      color: var(--primary);
+    }
+
+    .tab-btn.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* Haulers Dashboard */
+    .hauler-search {
+      margin-bottom: 16px;
+    }
+
+    .hauler-search input {
+      width: 100%;
+      max-width: 320px;
+      padding: 9px 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 0.875rem;
+    }
+
+    .hauler-progress-track {
+      width: 100%;
+      height: 6px;
+      background-color: #e2e8f0;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: 4px;
+    }
+
+    .hauler-progress-fill {
+      height: 100%;
+      background-color: var(--success);
+      border-radius: 4px;
+    }
+
+    .hauler-name-cell {
+      font-weight: 700;
+    }
+
+    .hauler-empty-state {
+      text-align: center;
+      padding: 32px 16px;
+      color: #64748b;
+      font-size: 0.9rem;
+    }
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
@@ -337,6 +414,15 @@
     <header>
       <h1>Logistics Management Dashboard</h1>
     </header>
+
+    <!-- Tab Navigation -->
+    <div class="tab-navigation">
+      <button class="tab-btn active" onclick="switchTab(event, 'dashboard-tab')">📊 Request Log</button>
+      <button class="tab-btn" onclick="switchTab(event, 'haulers-tab')">🚛 Logistics Haulers</button>
+    </div>
+
+    <!-- Request Log Dashboard -->
+    <div id="dashboard-tab" class="tab-content active">
 
     <!-- Key Metrics -->
     <div class="kpi-grid">
@@ -454,6 +540,62 @@
         </tbody>
       </table>
     </div>
+
+    </div>
+    <!-- /Request Log Dashboard -->
+
+    <!-- Logistics Haulers Dashboard -->
+    <div id="haulers-tab" class="tab-content">
+
+      <!-- Hauler Key Metrics -->
+      <div class="kpi-grid">
+        <div class="card">
+          <h3>Total Unit Haulers</h3>
+          <div class="value" id="hauler-kpi-total">0</div>
+        </div>
+        <div class="card">
+          <h3>Active Assignments</h3>
+          <div class="value" id="hauler-kpi-active" style="color: var(--warning);">0</div>
+        </div>
+        <div class="card">
+          <h3>Completed Deliveries</h3>
+          <div class="value" id="hauler-kpi-completed" style="color: var(--success);">0</div>
+        </div>
+        <div class="card">
+          <h3>Avg. Completion Rate</h3>
+          <div class="value" id="hauler-kpi-rate">0%</div>
+        </div>
+      </div>
+
+      <!-- Search -->
+      <div class="hauler-search">
+        <input type="text" id="hauler-search-input" placeholder="🔍 Search unit hauler..." oninput="renderHaulersDashboard()">
+      </div>
+
+      <!-- Haulers Table -->
+      <div class="card table-container">
+        <h2 style="font-size: 1.1rem; margin-bottom: 16px;">Unit Hauler Utilization</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Unit Hauler</th>
+              <th>Total Assignments</th>
+              <th>Pending</th>
+              <th>Served</th>
+              <th>Completion</th>
+              <th>Last Cargo</th>
+              <th>Last Route</th>
+            </tr>
+          </thead>
+          <tbody id="haulers-table-body">
+            <!-- Dynamic rows -->
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+    <!-- /Logistics Haulers Dashboard -->
+
   </div>
 
   <!-- Compact Edit Modal -->
@@ -560,6 +702,19 @@
       document.getElementById("accordion-container").classList.toggle("active");
     }
 
+    // Tab Navigation
+    function switchTab(evt, tabId) {
+      document.querySelectorAll(".tab-content").forEach(el => el.classList.remove("active"));
+      document.querySelectorAll(".tab-btn").forEach(btn => btn.classList.remove("active"));
+
+      document.getElementById(tabId).classList.add("active");
+      evt.currentTarget.classList.add("active");
+
+      if (tabId === "haulers-tab") {
+        renderHaulersDashboard();
+      }
+    }
+
     function calculateDuration(dateReq, dateSrv, status) {
       if (status === "Pending" || dateSrv === "N/A") return "In Progress";
       const start = new Date(dateReq);
@@ -607,6 +762,82 @@
       document.getElementById("kpi-total").textContent = requestsData.length;
       document.getElementById("kpi-pending").textContent = pending;
       document.getElementById("kpi-served").textContent = served;
+
+      renderHaulersDashboard();
+    }
+
+    // Logistics Haulers Dashboard
+    function renderHaulersDashboard() {
+      const tbody = document.getElementById("haulers-table-body");
+      const searchInput = document.getElementById("hauler-search-input");
+      if (!tbody) return;
+
+      const query = (searchInput && searchInput.value ? searchInput.value : "").trim().toLowerCase();
+
+      // Aggregate by unit hauler
+      const haulerMap = {};
+      requestsData.forEach(item => {
+        const key = (item.unitHaulers || "Unassigned").trim() || "Unassigned";
+        if (!haulerMap[key]) {
+          haulerMap[key] = { total: 0, pending: 0, served: 0, lastCargo: "", lastRoute: "", lastDate: "" };
+        }
+        const h = haulerMap[key];
+        h.total++;
+        if (item.status === "Served") h.served++;
+        else h.pending++;
+
+        if (!h.lastDate || item.dateRequested > h.lastDate) {
+          h.lastDate = item.dateRequested;
+          h.lastCargo = item.cargo;
+          h.lastRoute = `${item.source} → ${item.areaDestination}`;
+        }
+      });
+
+      let haulerNames = Object.keys(haulerMap).sort((a, b) => a.localeCompare(b));
+      if (query) {
+        haulerNames = haulerNames.filter(name => name.toLowerCase().includes(query));
+      }
+
+      tbody.innerHTML = "";
+
+      if (haulerNames.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7"><div class="hauler-empty-state">No unit haulers found.</div></td></tr>`;
+      } else {
+        haulerNames.forEach(name => {
+          const h = haulerMap[name];
+          const completion = h.total > 0 ? Math.round((h.served / h.total) * 100) : 0;
+
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td class="hauler-name-cell">${name}</td>
+            <td>${h.total}</td>
+            <td>${h.pending}</td>
+            <td>${h.served}</td>
+            <td>
+              ${completion}%
+              <div class="hauler-progress-track">
+                <div class="hauler-progress-fill" style="width: ${completion}%;"></div>
+              </div>
+            </td>
+            <td>${h.lastCargo || "—"}</td>
+            <td>${h.lastRoute && h.lastRoute !== " → " ? h.lastRoute : "—"}</td>
+          `;
+          tbody.appendChild(row);
+        });
+      }
+
+      // Hauler KPIs (always reflect the full dataset, not the filtered search)
+      const allHaulerNames = Object.keys(haulerMap);
+      const totalHaulers = allHaulerNames.length;
+      const totalActive = allHaulerNames.reduce((sum, name) => sum + haulerMap[name].pending, 0);
+      const totalCompleted = allHaulerNames.reduce((sum, name) => sum + haulerMap[name].served, 0);
+      const totalAssignments = totalActive + totalCompleted;
+      const avgRate = totalAssignments > 0 ? Math.round((totalCompleted / totalAssignments) * 100) : 0;
+
+      document.getElementById("hauler-kpi-total").textContent = totalHaulers;
+      document.getElementById("hauler-kpi-active").textContent = totalActive;
+      document.getElementById("hauler-kpi-completed").textContent = totalCompleted;
+      document.getElementById("hauler-kpi-rate").textContent = `${avgRate}%`;
     }
 
     // Add New Entry
