@@ -405,6 +405,45 @@
       color: #64748b;
       font-size: 0.9rem;
     }
+
+    /* Import Preview Modal */
+    .import-modal .modal {
+      max-width: 900px;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .import-preview-summary {
+      font-size: 0.85rem;
+      color: #475569;
+      margin-bottom: 12px;
+    }
+
+    .import-preview-table-wrap {
+      overflow: auto;
+      max-height: 45vh;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+    }
+
+    .import-preview-table-wrap table {
+      font-size: 0.8rem;
+    }
+
+    .import-preview-table-wrap th {
+      position: sticky;
+      top: 0;
+    }
+
+    .badge-row-warning {
+      background-color: #fef3c7;
+      color: #b45309;
+      font-size: 0.7rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
@@ -444,6 +483,7 @@
     <div class="import-bar">
       <span class="import-status" id="import-status"></span>
       <input type="file" id="import-file-input" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleImportFile(event)">
+      <button type="button" class="btn-secondary" onclick="resetRequestsData()">🗑️ Reset Data</button>
       <button type="button" class="btn-import" onclick="document.getElementById('import-file-input').click()">📥 Import Data (Excel)</button>
     </div>
 
@@ -658,8 +698,41 @@
     </div>
   </div>
 
+  <!-- Import Preview Modal -->
+  <div class="modal-overlay import-modal" id="import-preview-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 style="font-size: 1.1rem;">Review Import</h3>
+      </div>
+      <p class="import-preview-summary" id="import-preview-summary"></p>
+      <div class="import-preview-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Type of Request</th>
+              <th>Mobilization Type</th>
+              <th>Cargo</th>
+              <th>Date Requested</th>
+              <th>Unit Haulers</th>
+              <th>Source</th>
+              <th>Area Destination</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="import-preview-tbody">
+            <!-- Dynamic preview rows -->
+          </tbody>
+        </table>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" onclick="cancelImportPreview()">Cancel</button>
+        <button type="button" class="btn" onclick="saveImportedData()">💾 Save Import</button>
+      </div>
+    </div>
+  </div>
+
   <script>
-    let requestsData = [
+    const DEFAULT_REQUESTS_DATA = [
       {
         id: 1,
         typeOfRequest: "Equipment Hauling",
@@ -697,6 +770,8 @@
         dateServed: "N/A"
       }
     ];
+
+    let requestsData = DEFAULT_REQUESTS_DATA.map(item => ({ ...item }));
 
     function toggleAccordion() {
       document.getElementById("accordion-container").classList.toggle("active");
@@ -862,6 +937,7 @@
 
       requestsData.unshift(newEntry);
       renderDashboard();
+      saveRequestsData();
       this.reset();
       toggleAccordion(); // Close accordion after submitting
     });
@@ -871,6 +947,7 @@
       if (confirm("Are you sure you want to delete this request?")) {
         requestsData = requestsData.filter(item => item.id !== id);
         renderDashboard();
+        saveRequestsData();
       }
     }
 
@@ -924,6 +1001,7 @@
 
       closeEditModal();
       renderDashboard();
+      saveRequestsData();
     });
 
     // Import Data from Excel
@@ -977,12 +1055,14 @@
       };
     }
 
+    let pendingImportEntries = [];
+
     function handleImportFile(event) {
       const file = event.target.files[0];
       if (!file) return;
 
       const statusEl = document.getElementById("import-status");
-      statusEl.textContent = "Importing...";
+      statusEl.textContent = "Reading file...";
 
       const reader = new FileReader();
       reader.onload = function(e) {
@@ -993,19 +1073,20 @@
           const sheet = workbook.Sheets[firstSheetName];
           const rows = XLSX.utils.sheet_to_json(sheet, { defval: "" });
 
-          let importedCount = 0;
+          pendingImportEntries = [];
           rows.forEach(row => {
             const entry = mapRowToEntry(row);
-            if (entry) {
-              requestsData.unshift(entry);
-              importedCount++;
-            }
+            if (entry) pendingImportEntries.push(entry);
           });
 
-          renderDashboard();
-          statusEl.textContent = importedCount > 0
-            ? `Imported ${importedCount} entr${importedCount === 1 ? "y" : "ies"}.`
-            : "No matching rows found in file.";
+          if (pendingImportEntries.length === 0) {
+            statusEl.textContent = "No matching rows found in file.";
+            event.target.value = "";
+            return;
+          }
+
+          statusEl.textContent = "";
+          showImportPreview();
         } catch (err) {
           console.error(err);
           statusEl.textContent = "Import failed. Please check the file format.";
@@ -1016,7 +1097,90 @@
       reader.readAsArrayBuffer(file);
     }
 
-    renderDashboard();
+    function showImportPreview() {
+      const summaryEl = document.getElementById("import-preview-summary");
+      const tbody = document.getElementById("import-preview-tbody");
+
+      summaryEl.textContent = `Found ${pendingImportEntries.length} entr${pendingImportEntries.length === 1 ? "y" : "ies"} ready to import. Review below, then click "Save Import" to add them to the Request Log.`;
+
+      tbody.innerHTML = pendingImportEntries.map(item => `
+        <tr>
+          <td><strong>${item.typeOfRequest || "—"}</strong></td>
+          <td>${item.mobilizationType || "—"}</td>
+          <td>${item.cargo || "—"}</td>
+          <td>${item.dateRequested || "—"}</td>
+          <td>${item.unitHaulers || "—"}</td>
+          <td>${item.source || "—"}</td>
+          <td>${item.areaDestination || "—"}</td>
+          <td><span class="badge ${item.status === "Served" ? "badge-served" : "badge-pending"}">${item.status}</span></td>
+        </tr>
+      `).join("");
+
+      document.getElementById("import-preview-modal").classList.add("active");
+    }
+
+    function cancelImportPreview() {
+      pendingImportEntries = [];
+      document.getElementById("import-preview-modal").classList.remove("active");
+      document.getElementById("import-status").textContent = "Import cancelled.";
+    }
+
+    // Save function for Import Data — commits the previewed rows into the Request Log and autosaves
+    async function saveImportedData() {
+      if (pendingImportEntries.length === 0) {
+        document.getElementById("import-preview-modal").classList.remove("active");
+        return;
+      }
+
+      const count = pendingImportEntries.length;
+      pendingImportEntries.forEach(entry => requestsData.unshift(entry));
+      pendingImportEntries = [];
+
+      renderDashboard();
+      await saveRequestsData();
+
+      document.getElementById("import-preview-modal").classList.remove("active");
+      document.getElementById("import-status").textContent = `Imported ${count} entr${count === 1 ? "y" : "ies"} and saved to the Request Log.`;
+    }
+
+    // Persistent Storage (autosave)
+    async function saveRequestsData() {
+      try {
+        await window.storage.set("requestsData", JSON.stringify(requestsData), false);
+      } catch (err) {
+        console.error("Autosave failed:", err);
+      }
+    }
+
+    async function loadRequestsData() {
+      try {
+        const result = await window.storage.get("requestsData", false);
+        if (result && result.value) {
+          const parsed = JSON.parse(result.value);
+          if (Array.isArray(parsed)) {
+            requestsData = parsed;
+          }
+        }
+      } catch (err) {
+        // No saved data yet (first run) — keep the default sample data
+        console.log("No saved data found, using defaults.");
+      }
+      renderDashboard();
+    }
+
+    async function resetRequestsData() {
+      if (!confirm("Reset all saved data back to the sample entries? This clears your autosaved data and cannot be undone.")) return;
+      requestsData = DEFAULT_REQUESTS_DATA.map(item => ({ ...item }));
+      try {
+        await window.storage.delete("requestsData", false);
+      } catch (err) {
+        console.error("Reset (storage clear) failed:", err);
+      }
+      renderDashboard();
+      document.getElementById("import-status").textContent = "Data reset to defaults.";
+    }
+
+    loadRequestsData();
   </script>
 </body>
 </html>
